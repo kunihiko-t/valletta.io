@@ -1,0 +1,194 @@
+<html>
+	<head>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src='https://cdn.mlkcca.com/v2.0.0/milkcocoa.js'></script>
+		<script src="./three.min.js"></script>
+		<script>
+			var milkcocoa = new MilkCocoa("yieldidlv4nqb.mlkcca.com");
+			var mouseDataStore = milkcocoa.dataStore('mouse');
+
+			// Our Javascript will go here.
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+
+			var circleClouds = [];
+			var bombs = [];
+
+
+			function init(){
+				for(var i=0; i<5; i++){
+					addCircle();
+				}
+				camera.position.z = 1000;
+			}
+
+			function addCircle(){
+				var positionX = THREE.Math.randInt(-(window.innerWidth),window.innerWidth);
+				var positionY = THREE.Math.randInt(-(window.innerHeight),window.innerHeight);
+
+				var radius = THREE.Math.randInt(10,30);
+				var alpha = 0.2
+				var circles = [];
+				for(var i=0; i<5; i++){
+					alpha *= 2.0;
+					var geometry = new THREE.CircleGeometry( radius, 30 );
+					var material = new THREE.MeshBasicMaterial( { opacity: alpha, transparent: true } );
+					var h = THREE.Math.randFloat(0.6, 0.8);
+				  var s = THREE.Math.randFloat(0.5, 0.7);
+					var l = THREE.Math.randFloat(0.5, 0.8);
+					material.color.setHSL(h, s,l);
+					var circle = new THREE.Mesh( geometry, material );
+					circle.position.x = positionX;
+					circle.position.y = positionY;
+					circle.speed = THREE.Math.randInt(2,5);
+					circle.maxSpeed = circle.speed;
+					circle.maxScale = THREE.Math.randInt(radius, radius*2);
+					circle.scaleFactor = 1.001;
+					circle.acceleration = THREE.Math.randFloat(0.1, 2.010);
+					circle.angle = 0;
+					if( THREE.Math.randInt(0,2) == 1){
+						circle.directionX = 1;
+					}else{
+						circle.directionX = -1;
+					}
+					if( THREE.Math.randInt(0,2) == 1){
+						circle.directionY = 1;
+					}else{
+						circle.directionY = -1;
+					}
+					circles.push(circle);
+					scene.add( circle );
+					radius *= 0.8;
+				}
+					circleClouds.push(circles);
+			}
+
+			function explosion(){
+				var destroyIndexes = [];
+				for(var i=0; i < bombs.length; i++){
+					var circles = bombs[i];
+					for(var j=0; j< circles.length; j++){
+						var circle = circles[j];
+						circle.material.color.setHSL(0.9, 0.5,0.5);
+
+						circle.material.opacity -= 0.02;
+						circle.scale.x *= 1.025;
+						circle.scale.y *= 1.025;
+
+						if(circle.material.opacity <= -2){
+ 						 	destroyIndexes.push(i);
+							break;
+ 					 	}
+
+					}
+				}
+
+				for(var i = 0; i < destroyIndexes.length; i++){
+					var circles = bombs[i];
+					for(var j=0; j< circles.length; j++){
+						circles[j].material.opacity -= 0.1;
+						scene.remove( circles[j] );
+					}
+					bombs.splice(destroyIndexes[i] ,1);
+				}
+
+			}
+
+			function render() {
+				explosion();
+				var willBreakIndexes = [];
+				for(var i=0; i < circleClouds.length; i++){
+					var circles = circleClouds[i];
+					var speed = circles[0].speed;
+					var directionX = circles[0].directionX;
+					var directionY = circles[0].directionY;
+					var stepX = speed*directionX
+					var stepY = speed*directionY
+					var angle = circles[0].angle;
+					var sin =  Math.sin(angle) * 5;
+					var cos =  Math.cos(angle) * 5;
+					// stepX += cos;
+					circles[0].angle += 0.003;
+
+
+					if(THREE.Math.randInt(0,10000) > 9996){
+						circles[0].directionX = -directionX;
+					}
+					if(THREE.Math.randInt(0,10000) > 9996){
+						circles[0].directionY = -directionY;
+					}
+					var acceleration = circles[0].acceleration;
+					var maxSpeed = circles[0].maxSpeed;
+					if(speed > maxSpeed || speed < 1){
+						circles[0].acceleration = -acceleration;
+					}
+
+					circles[0].speed += acceleration;
+					for(var j=0; j< circles.length; j++){
+						var circle = circles[j];
+						if(circle.position.x > window.innerWidth){
+							circle.position.x = -(window.innerWidth);
+						}
+						if(circle.position.x < -window.innerWidth){
+							circle.position.x = window.innerWidth;
+						}
+						if(circle.position.y > window.innerHeight){
+							circle.position.y = -(window.innerHeight);
+						}
+						if(circle.position.y < -window.innerHeight){
+							circle.position.y = window.innerHeight;
+						}
+						circle.position.x += stepX +cos;
+						circle.position.y += stepY +sin;
+						circle.scale.x *= circle.scaleFactor;
+						circle.scale.y *= circle.scaleFactor;
+						if(circle.scale.x > 2){
+							circle.scaleFactor = 0.999;
+						}
+						if(circle.scale.x < 0.1){
+							circle.scaleFactor = 1.001;
+						}
+						stepX *= 0.991;
+						stepY *= 0.991;
+
+
+
+					}
+
+					if(THREE.Math.randInt(0,1000000) > 999907){
+						willBreakIndexes.push(i);
+						bombs.push(circles);
+					}
+				}
+
+				for(var i = 0; i < willBreakIndexes.length; i++){
+					circleClouds.splice(willBreakIndexes[i] ,1);
+				}
+				requestAnimationFrame( render );
+				renderer.render( scene, camera );
+			}
+
+			init();
+			render();
+
+			 window.onmousedown = function (e){
+				 mouseDataStore.send({});
+			 }
+
+			 mouseDataStore.on("send",function(sent){
+				 addCircle(true);
+			 });
+
+		</script>
+	</body>
+</html>
