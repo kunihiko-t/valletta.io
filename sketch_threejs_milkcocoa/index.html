@@ -28,7 +28,7 @@
 			function init(){
 				var el = document.getElementsByTagName("body")[0];
 				el.addEventListener("touchstart", handleTouchStart, false);
-				for(var i=0; i<5; i++){
+				for(var i=0; i<15; i++){
 					addCircle();
 				}
 				camera.position.z = 1000;
@@ -186,7 +186,7 @@
 			 window.onmousedown = function (e){
 				 mouseDataStore.send({});
 			 }
-			 
+
 			 function handleTouchStart(e){
 				 mouseDataStore.send({});
 			 }
