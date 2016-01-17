@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - postprocessing - digital glitch</title>
+		<title>Valletta.io</title>
 		<meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="stylesheets/main.css" media="screen" />
 	</head>
@@ -210,84 +210,6 @@
 		    }
 			}
 
-
-			//
-			//
-			// function getAsciiBlocks(str,fontSize,fontName) {
-	    //     // init
-	    //     var i, j;
-	    //     var canvasTmp = document.createElement("canvas")
-			//
-	    //     if(!canvasTmp.getContext) return;
-	    //     var contextTmp = canvasTmp.getContext('2d');
-	    //     var fontStyle = fontSize + "px " + fontName;
-	    //     var strWidth, strHeight;
-	    //     var table = [];
-			//
-	    //     // measure text
-	    //     contextTmp.font  = fontStyle;
-	    //     canvasTmp.width  = strWidth  = Math.ceil(contextTmp.measureText(str).width);
-	    //     canvasTmp.height = strHeight = Math.ceil(fontSize * 1.5);
-			//
-	    //     // render text
-	    //     contextTmp.font = fontStyle;
-	    //     contextTmp.textBaseline = "top";
-	    //     contextTmp.fillText(str, 0, 0);
-			//
-	    //     // get image data
-	    //     var imgdata = contextTmp.getImageData(0, 0, strWidth, strHeight);
-	    //     var exist = false;
-	    //     var cnt = 0;
-	    //     for(i = 0; i < strHeight; i++){
-	    //         for(j = 0; j < strWidth; j++){
-	    //             var alpha = imgdata.data[(strWidth * i + j) * 4 + 3];
-	    //             if(alpha >= 128){
-	    //                 if(!exist) exist = true;
-	    //                 if(!table[i + cnt]) table[i + cnt] = [];
-	    //                 table[i + cnt][j] = 1;
-	    //             }
-	    //         }
-	    //         if(table[i + cnt]){
-	    //             for(j = 0; j < strWidth; j++){
-	    //                 if(!table[i + cnt][j]) table[i + cnt][j] = 0;
-	    //             }
-	    //         }
-	    //         if(!exist) cnt--;
-	    //     }
-			//
-	    //     return table;
-	    // }
-			//
-			//
-			// function createCubes(scene,cubes,str,fontSize){
-	    //     var table = getAsciiBlocks(str,fontSize);
-	    //     table.reverse();
-	    //     table.forEach(function(row,rowIndex) {
-	    //         row.forEach(function(cell,colIndex) {
-	    //             if (cell === 1) {
-	    //                 var cube = createCube(colIndex,rowIndex,table,row)
-	    //                 cubes.push(cube);
-	    //                 scene.add(cube);
-	    //             }
-	    //         })
-	    //     })
-	    // }
-			//
-			// function createCube(colIndex,rowIndex,table,row) {
-	    //     var cubeSize = 14;
-	    //     var geometry = new THREE.BoxGeometry(cubeSize,cubeSize,cubeSize);
-	    //     var material = new THREE.MeshLambertMaterial({color: "#ffffff"});
-	    //     var cube;
-	    //     cube = new THREE.Mesh(geometry, material);
-	    //     cube.castShadow = true;
-	    //     cube.position.set(calcPosition(row,colIndex),calcPosition(table,rowIndex),0)
-			//
-	    //     return cube;
-	    // }
-			//
-			// function calcPosition(array,index) {
-	    //     return index * 15 - (array.length / 2 * 15);
-	    // }
 
 		</script>
 	</body>
