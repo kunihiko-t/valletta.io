@@ -1,7 +1,28 @@
 body {
+  margin: 0px;
+  background-color: #000000;
+  overflow: hidden;
+}
+
+div {
+  position: absolute;
+  z-index: 10;
+  color: #fff;
+  font-family: monospace;
+  text-align: center;
+  margin: 10px;
+  width: 100%;
+}
+
+label, input {
+  cursor: pointer;
+}
+
+
+
+body {
   margin: 0;
   padding: 0;
-  background: #151515 url("../images/bkg.png") 0 0;
   color: #eaeaea;
   font: 16px;
   line-height: 1.5;
@@ -244,4 +265,16 @@ a {
 
 .cf {
   zoom:1;
+}
+
+
+.title {
+  margin: -50px 0 0 -100px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 100px;
+  display: none;
+  visibility: hidden;
 }

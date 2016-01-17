@@ -1,38 +1,294 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+<html lang="en">
+	<head>
+		<title>three.js webgl - postprocessing - digital glitch</title>
+		<meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="stylesheets/main.css" media="screen" />
+	</head>
+	<body>
 
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+		<script src="./three.min.js"></script>
 
-    <title>Valletta.io by kunihiko-t</title>
-  </head>
+		<script src="js/shaders/CopyShader.js"></script>
+		<script src="js/shaders/DigitalGlitch.js"></script>
 
-  <body>
+		<script src="js/postprocessing/EffectComposer.js"></script>
+		<script src="js/postprocessing/RenderPass.js"></script>
+		<script src="js/postprocessing/MaskPass.js"></script>
+		<script src="js/postprocessing/ShaderPass.js"></script>
+		<script src="js/postprocessing/GlitchPass.js"></script>
 
-    <header>
-      <div class="container">
-        <h1>Valletta.io</h1>
-        <h2>Valletta.io</h2>
+		<div class="title">
+			<h1>Valletta.io</h1>
+		<div>
 
-        <section id="downloads">
-          <a href="https://github.com/kunihiko-t/valletta.io/zipball/master" class="btn">Download as .zip</a>
-          <a href="https://github.com/kunihiko-t/valletta.io/tarball/master" class="btn">Download as .tar.gz</a>
-          <a href="https://github.com/kunihiko-t/valletta.io" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-        </section>
-      </div>
-    </header>
 
-    <div class="container">
-      <section id="main_content">
-        <h1>
-<a name="valletaio" class="anchor" href="#valletaio"><span class="octicon octicon-link"></span></a>Valleta.io</h1>
-      </section>
-    </div>
+		<script>
 
-    
-  </body>
+			var camera, scene, renderer, composer;
+			var object, light;
+
+			var glitchPass;
+
+			init();
+			animate();
+
+			function updateOptions() {
+				glitchPass.goWild=false
+			}
+
+			function init() {
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				//
+
+				camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+				camera.position.z = 600;
+
+				scene = new THREE.Scene();
+				scene.fog = new THREE.Fog( 0x000000, 1, 1000 );
+
+				object = new THREE.Object3D();
+				scene.add( object );
+
+				var geometry = new THREE.SphereGeometry( 1, 4, 4 );
+				var material = new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading } );
+
+				// for ( var i = 0; i < 2; i ++ ) {
+				// 	material = new THREE.MeshPhongMaterial( { color: 0xffffff * Math.random(), shading: THREE.FlatShading } );
+				//
+				// 	var mesh = new THREE.Mesh( geometry, material );
+				// 	mesh.position.set( Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5 ).normalize();
+				// 	mesh.position.multiplyScalar( Math.random() * 400 );
+				// 	mesh.rotation.set( Math.random() * 2, Math.random() * 2, Math.random() * 2 );
+				// 	mesh.scale.x = mesh.scale.y = mesh.scale.z = Math.random() * 50;
+				// 	object.add( mesh );
+				//
+				// }
+
+				scene.add( new THREE.AmbientLight( 0x222222 ) );
+
+				light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 1, 1, 10 );
+				scene.add( light );
+
+				// postprocessing
+
+				composer = new THREE.EffectComposer( renderer );
+				composer.addPass( new THREE.RenderPass( scene, camera ) );
+
+				glitchPass = new THREE.GlitchPass();
+				glitchPass.renderToScreen = true;
+				composer.addPass( glitchPass );
+				// var cubes = [];
+				// createCubes(scene,cubes,"Valletta.io", 16);
+				var generator = new LogoGenerator("Valletta.io", 16, null,scene);
+				generator.createCubes();
+
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				updateOptions();
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				var time = Date.now();
+
+				object.rotation.x += 0.005;
+				object.rotation.y += 0.01;
+
+
+				composer.render();
+				//renderer.render(scene, camera);
+
+			}
+
+
+			function LogoGenerator(str, fontSize, fontName,scene){
+
+				this.str = str;
+				this.fontSize = fontSize;
+				this.fontName = fontName;
+				this.scene = scene;
+				this.cubes = [];
+
+				this.getAsciiBlocks = function(){
+					// init
+	        var i, j;
+	        var canvasTmp = document.createElement("canvas")
+
+	        if(!canvasTmp.getContext) return;
+	        var contextTmp = canvasTmp.getContext('2d');
+	        var fontStyle = this.fontSize + "px " + this.fontName;
+	        var strWidth, strHeight;
+	        var table = [];
+
+	        // measure text
+	        contextTmp.font  = fontStyle;
+	        canvasTmp.width  = strWidth  = Math.ceil(contextTmp.measureText(this.str).width);
+	        canvasTmp.height = strHeight = Math.ceil(this.fontSize * 1.5);
+
+	        // render text
+	        contextTmp.font = fontStyle;
+	        contextTmp.textBaseline = "top";
+	        contextTmp.fillText(this.str, 0, 0);
+
+	        // get image data
+	        var imgdata = contextTmp.getImageData(0, 0, strWidth, strHeight);
+	        var exist = false;
+	        var cnt = 0;
+	        for(i = 0; i < strHeight; i++){
+	            for(j = 0; j < strWidth; j++){
+	                var alpha = imgdata.data[(strWidth * i + j) * 4 + 3];
+	                if(alpha >= 128){
+	                    if(!exist) exist = true;
+	                    if(!table[i + cnt]) table[i + cnt] = [];
+	                    table[i + cnt][j] = 1;
+	                }
+	            }
+	            if(table[i + cnt]){
+	                for(j = 0; j < strWidth; j++){
+	                    if(!table[i + cnt][j]) table[i + cnt][j] = 0;
+	                }
+	            }
+	            if(!exist) cnt--;
+	        }
+
+	        return table;
+
+
+				}
+
+
+
+				this.createCubes =  function(){
+					 var self = this
+		        var table = this.getAsciiBlocks(this.str,this.fontSize);
+		        table.reverse();
+		        table.forEach(function(row,rowIndex) {
+		            row.forEach(function(cell,colIndex) {
+		                if (cell === 1) {
+		                    var cube = self.createCube(colIndex,rowIndex,table,row)
+		                    self.cubes.push(cube);
+		                    self.scene.add(cube);
+		                }
+		            })
+		        })
+		    }
+
+				this.createCube = function(colIndex,rowIndex,table,row) {
+		        var cubeSize = 14;
+		        var geometry = new THREE.BoxGeometry(cubeSize,cubeSize,cubeSize);
+		        var material = new THREE.MeshLambertMaterial({color: "#ffffff"});
+		        var cube;
+		        cube = new THREE.Mesh(geometry, material);
+		        cube.castShadow = true;
+		        cube.position.set(this.calcPosition(row,colIndex),this.calcPosition(table,rowIndex),0)
+		        return cube;
+		    }
+
+				this.calcPosition = function(array,index) {
+		        return index * 15 - (array.length / 2 * 15);
+		    }
+			}
+
+
+			//
+			//
+			// function getAsciiBlocks(str,fontSize,fontName) {
+	    //     // init
+	    //     var i, j;
+	    //     var canvasTmp = document.createElement("canvas")
+			//
+	    //     if(!canvasTmp.getContext) return;
+	    //     var contextTmp = canvasTmp.getContext('2d');
+	    //     var fontStyle = fontSize + "px " + fontName;
+	    //     var strWidth, strHeight;
+	    //     var table = [];
+			//
+	    //     // measure text
+	    //     contextTmp.font  = fontStyle;
+	    //     canvasTmp.width  = strWidth  = Math.ceil(contextTmp.measureText(str).width);
+	    //     canvasTmp.height = strHeight = Math.ceil(fontSize * 1.5);
+			//
+	    //     // render text
+	    //     contextTmp.font = fontStyle;
+	    //     contextTmp.textBaseline = "top";
+	    //     contextTmp.fillText(str, 0, 0);
+			//
+	    //     // get image data
+	    //     var imgdata = contextTmp.getImageData(0, 0, strWidth, strHeight);
+	    //     var exist = false;
+	    //     var cnt = 0;
+	    //     for(i = 0; i < strHeight; i++){
+	    //         for(j = 0; j < strWidth; j++){
+	    //             var alpha = imgdata.data[(strWidth * i + j) * 4 + 3];
+	    //             if(alpha >= 128){
+	    //                 if(!exist) exist = true;
+	    //                 if(!table[i + cnt]) table[i + cnt] = [];
+	    //                 table[i + cnt][j] = 1;
+	    //             }
+	    //         }
+	    //         if(table[i + cnt]){
+	    //             for(j = 0; j < strWidth; j++){
+	    //                 if(!table[i + cnt][j]) table[i + cnt][j] = 0;
+	    //             }
+	    //         }
+	    //         if(!exist) cnt--;
+	    //     }
+			//
+	    //     return table;
+	    // }
+			//
+			//
+			// function createCubes(scene,cubes,str,fontSize){
+	    //     var table = getAsciiBlocks(str,fontSize);
+	    //     table.reverse();
+	    //     table.forEach(function(row,rowIndex) {
+	    //         row.forEach(function(cell,colIndex) {
+	    //             if (cell === 1) {
+	    //                 var cube = createCube(colIndex,rowIndex,table,row)
+	    //                 cubes.push(cube);
+	    //                 scene.add(cube);
+	    //             }
+	    //         })
+	    //     })
+	    // }
+			//
+			// function createCube(colIndex,rowIndex,table,row) {
+	    //     var cubeSize = 14;
+	    //     var geometry = new THREE.BoxGeometry(cubeSize,cubeSize,cubeSize);
+	    //     var material = new THREE.MeshLambertMaterial({color: "#ffffff"});
+	    //     var cube;
+	    //     cube = new THREE.Mesh(geometry, material);
+	    //     cube.castShadow = true;
+	    //     cube.position.set(calcPosition(row,colIndex),calcPosition(table,rowIndex),0)
+			//
+	    //     return cube;
+	    // }
+			//
+			// function calcPosition(array,index) {
+	    //     return index * 15 - (array.length / 2 * 15);
+	    // }
+
+		</script>
+	</body>
 </html>
